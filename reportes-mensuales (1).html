@@ -589,7 +589,7 @@ async function generateSummary(){
     +'Reportes:\n'+reportText;
 
   try{
-    var res=await fetch("https://api.anthropic.com/v1/messages",{
+    var res=await fetch("https://corsproxy.io/?url=https://api.anthropic.com/v1/messages",{
       method:"POST",
       headers:{
         "Content-Type":"application/json",
