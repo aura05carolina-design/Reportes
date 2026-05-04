@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Reportes mensuales del equipo</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#111;background:#f5f5f3;min-height:100vh;padding:2rem 1rem}
+  .container{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;padding:2rem;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+  h2{font-size:20px;font-weight:500;margin-bottom:4px}
+  .subtitle{font-size:13px;color:#666;margin-bottom:1.5rem}
+  .tabs{display:flex;gap:4px;border-bottom:1px solid #e5e5e5;margin-bottom:1.5rem}
+  .tab{padding:8px 16px;font-size:14px;cursor:pointer;border:none;background:transparent;color:#888;border-bottom:2px solid transparent;font-family:inherit}
+  .tab.active{color:#111;border-bottom-color:#111;font-weight:500}
+  .section{display:none}.section.active{display:block}
+  .field{margin-bottom:1.25rem}
+  label{display:block;font-size:13px;color:#666;margin-bottom:6px}
+  input[type=text],input[type=password],select,textarea{width:100%;padding:8px 12px;font-size:14px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#111;font-family:inherit}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:#888}
+  textarea{resize:vertical;min-height:88px;line-height:1.6}
+  .btn-primary{background:#111;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
+  .btn-primary:hover{background:#333}
+  .btn-secondary{background:transparent;border:1px solid #ddd;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;color:#111;font-family:inherit}
+  .btn-secondary:hover{background:#f5f5f3}
+  .btn-secondary:disabled{opacity:.35;cursor:default}
+  .btn-icon{background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:6px;color:#888;font-size:13px;font-family:inherit}
+  .btn-icon:hover{background:#f0f0ee}
+  .card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem}
+  .badge{display:inline-block;font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500}
+  .badge-pending{background:#FFF3CD;color:#856404}
+  .badge-done{background:#D1FAE5;color:#065F46}
+  .badge-draft{background:#f0f0ee;color:#666;border:1px solid #ddd}
+  .metric-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+  .metric{background:#f5f5f3;border-radius:8px;padding:.85rem 1rem;text-align:center}
+  .metric-num{font-size:22px;font-weight:500}
+  .metric-num.green{color:#065F46}.metric-num.amber{color:#856404}.metric-num.gray{color:#888}
+  .metric-label{font-size:11px;color:#888;margin-top:3px}
+  .avatar{width:36px;height:36px;border-radius:50%;background:#DBEAFE;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:#1E40AF;flex-shrink:0}
+  .success-msg{background:#D1FAE5;color:#065F46;border-radius:8px;padding:12px 16px;font-size:14px;display:none;margin-top:1rem}
+  .report-detail{border-top:1px solid #f0f0ee;margin-top:1rem;padding-top:1rem;display:none}
+  .report-q{font-size:12px;color:#888;margin-bottom:4px;margin-top:10px}
+  .report-a{font-size:14px;line-height:1.6;color:#333}
+  .toggle-link{font-size:13px;color:#888;cursor:pointer;text-decoration:underline;background:none;border:none;padding:0;font-family:inherit}
+  .team-list-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0ee}
+  .team-list-item:last-child{border-bottom:none}
+  .add-member-row{display:flex;gap:8px;margin-bottom:1rem}
+  .add-member-row input{flex:1}
+  .month-nav{display:flex;align-items:center;justify-content:space-between;background:#f5f5f3;border-radius:8px;padding:8px 14px;margin-bottom:1.5rem;border:1px solid #e8e8e8}
+  .month-nav-label{font-size:14px;font-weight:500}
+  .month-nav-btn{background:none;border:none;cursor:pointer;color:#888;font-size:20px;padding:0 6px;line-height:1;font-family:inherit}
+  .month-nav-btn:disabled{opacity:.25;cursor:default}
+  .month-dots{display:flex;gap:6px;align-items:center;justify-content:center;margin-top:6px}
+  .month-dot{width:7px;height:7px;border-radius:50%;background:#ccc;cursor:pointer;border:none;padding:0}
+  .month-dot.active{background:#111}.month-dot.has-data{background:#888}
+  .summary-section{margin-top:1.5rem}
+  .summary-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+  .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
+  .summary-card{border-radius:12px;padding:1rem 1.25rem;border:1px solid #e8e8e8;background:#fff;min-height:130px}
+  .summary-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .summary-card-title{font-size:12px;font-weight:500;padding:4px 10px;border-radius:20px;display:inline-block}
+  .summary-card-title.mejorar{background:#FFF3CD;color:#856404}
+  .summary-card-title.pedidos{background:#DBEAFE;color:#1E40AF}
+  .summary-card-title.desvios{background:#FFE5D5;color:#9A3412}
+  .item-row{display:flex;align-items:flex-start;gap:6px;padding:4px 0;border-bottom:1px solid #f5f5f3}
+  .item-row:last-child{border-bottom:none}
+  .item-text{font-size:13px;line-height:1.6;color:#555;flex:1;min-width:0;cursor:text;word-break:break-word;border-radius:4px;outline:none}
+  .item-text:focus{outline:1px solid #ccc;background:#f9f9f8;padding:1px 4px}
+  .item-del{background:none;border:none;cursor:pointer;color:#bbb;font-size:15px;padding:0 2px;line-height:1;flex-shrink:0;margin-top:2px}
+  .item-del:hover{color:#e53e3e}
+  .add-item-row{display:flex;gap:6px;margin-top:10px}
+  .add-item-input{flex:1;font-size:13px;padding:5px 8px;border:1px dashed #ccc;border-radius:8px;background:transparent;color:#111;font-family:inherit}
+  .add-item-input::placeholder{color:#bbb}
+  .add-item-btn{background:none;border:1px solid #ddd;border-radius:8px;cursor:pointer;font-size:13px;padding:4px 10px;color:#888;font-family:inherit}
+  .townhall-card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:1rem 1.25rem;margin-top:12px}
+  .townhall-title{font-size:12px;font-weight:500;padding:4px 10px;border-radius:20px;background:#EDE9FE;color:#4C1D95;display:inline-block;margin-bottom:10px}
+  .townhall-items ul{list-style:none;padding:0}
+  .townhall-items ul li{font-size:13px;line-height:1.6;color:#555;padding:4px 0;border-bottom:1px solid #f5f5f3;display:flex;align-items:flex-start;justify-content:space-between;gap:6px}
+  .townhall-items ul li:last-child{border-bottom:none}
+  .ai-loading{display:flex;align-items:center;gap:8px;font-size:13px;color:#888;padding:1rem 0}
+  .dot-anim span{display:inline-block;animation:blink 1.2s infinite}
+  .dot-anim span:nth-child(2){animation-delay:.2s}
+  .dot-anim span:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+  .empty-summary{font-size:13px;color:#bbb;font-style:italic;text-align:center;padding:2rem 0}
+  .draft-indicator{font-size:11px;color:#bbb;display:none;margin-top:6px}
+  .draft-indicator.visible{display:block}
+  .draft-notice{background:#f5f5f3;border:1px solid #e8e8e8;border-radius:8px;padding:10px 14px;font-size:13px;color:#888;margin-bottom:1.25rem;display:none}
+  .key-row{display:flex;gap:8px;margin-top:10px;align-items:center}
+  .key-row input{flex:1;font-family:monospace;font-size:13px}
+  .key-status{font-size:12px;margin-top:8px;min-height:18px;line-height:1.5}
+  .key-status.ok{color:#065F46}.key-status.err{color:#9A3412}
+  .persist-note{font-size:12px;color:#aaa;margin-top:6px}
+  @media(max-width:600px){
+    .metric-row{grid-template-columns:repeat(2,1fr)}
+    .summary-grid{grid-template-columns:1fr}
+    body{padding:1rem .5rem}
+    .container{padding:1.25rem}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>Reportes mensuales del equipo</h2>
+  <p class="subtitle" id="subtitle">Cargando...</p>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('admin',this)">Panel admin</button>
+    <button class="tab" onclick="switchTab('form',this)">Mi reporte</button>
+    <button class="tab" onclick="switchTab('setup',this)">Configuración</button>
+  </div>
+
+  <!-- ADMIN -->
+  <div id="tab-admin" class="section active">
+    <div class="month-nav">
+      <button class="month-nav-btn" id="btn-prev" onclick="changeMonth(-1)">&#8249;</button>
+      <div style="text-align:center">
+        <div class="month-nav-label" id="month-label">—</div>
+        <div class="month-dots" id="month-dots"></div>
+      </div>
+      <button class="month-nav-btn" id="btn-next" onclick="changeMonth(1)">&#8250;</button>
+    </div>
+    <div class="metric-row">
+      <div class="metric"><div class="metric-num" id="m-total">—</div><div class="metric-label">Personas</div></div>
+      <div class="metric"><div class="metric-num green" id="m-done">—</div><div class="metric-label">Completaron</div></div>
+      <div class="metric"><div class="metric-num amber" id="m-draft">—</div><div class="metric-label">En borrador</div></div>
+      <div class="metric"><div class="metric-num gray" id="m-pending">—</div><div class="metric-label">Sin empezar</div></div>
+    </div>
+    <div id="admin-cards"></div>
+    <div class="summary-section">
+      <div class="summary-header">
+        <p style="font-size:14px;font-weight:500">Resumen del mes</p>
+        <button class="btn-secondary" id="btn-summarize" onclick="generateSummary()">Generar con IA ✦</button>
+      </div>
+      <div id="summary-loading" style="display:none"><div class="ai-loading">Analizando reportes <div class="dot-anim"><span>·</span><span>·</span><span>·</span></div></div></div>
+      <div id="summary-empty" class="empty-summary">Hacé clic en "Generar con IA" para clasificar los reportes automáticamente.</div>
+      <div id="summary-output" style="display:none">
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="summary-card-header"><span class="summary-card-title mejorar">A mejorar</span><button class="btn-icon" onclick="showAddItem('mejorar')">+</button></div>
+            <div id="list-mejorar"></div>
+            <div class="add-item-row" id="add-mejorar" style="display:none"><input class="add-item-input" placeholder="Nuevo punto..." id="inp-mejorar" onkeydown="if(event.key==='Enter')commitAdd('mejorar')"><button class="add-item-btn" onclick="commitAdd('mejorar')">&#10003;</button></div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-card-header"><span class="summary-card-title pedidos">Pedidos</span><button class="btn-icon" onclick="showAddItem('pedidos')">+</button></div>
+            <div id="list-pedidos"></div>
+            <div class="add-item-row" id="add-pedidos" style="display:none"><input class="add-item-input" placeholder="Nuevo punto..." id="inp-pedidos" onkeydown="if(event.key==='Enter')commitAdd('pedidos')"><button class="add-item-btn" onclick="commitAdd('pedidos')">&#10003;</button></div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-card-header"><span class="summary-card-title desvios">Desvíos</span><button class="btn-icon" onclick="showAddItem('desvios')">+</button></div>
+            <div id="list-desvios"></div>
+            <div class="add-item-row" id="add-desvios" style="display:none"><input class="add-item-input" placeholder="Nuevo punto..." id="inp-desvios" onkeydown="if(event.key==='Enter')commitAdd('desvios')"><button class="add-item-btn" onclick="commitAdd('desvios')">&#10003;</button></div>
+          </div>
+        </div>
+        <div id="townhall-section" class="townhall-card" style="display:none">
+          <div class="summary-card-header"><span class="townhall-title">Town Hall — en qué estuvimos trabajando</span><button class="btn-icon" onclick="showAddItem('townhall')">+</button></div>
+          <div id="list-townhall" class="townhall-items"></div>
+          <div class="add-item-row" id="add-townhall" style="display:none"><input class="add-item-input" placeholder="Nuevo punto..." id="inp-townhall" onkeydown="if(event.key==='Enter')commitAdd('townhall')"><button class="add-item-btn" onclick="commitAdd('townhall')">&#10003;</button></div>
+        </div>
+        <p style="font-size:11px;color:#bbb;margin-top:10px;text-align:right">Generado por IA · podés editar cada punto haciendo clic</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div id="tab-form" class="section">
+    <div class="draft-notice" id="draft-notice">&#128221; Tenés un borrador guardado para este mes. Podés seguir editando cuando quieras.</div>
+    <div class="field"><label>¿Quién sos?</label><select id="f-name" onchange="loadDraft()"><option value="">Seleccioná tu nombre</option></select></div>
+    <div class="field"><label>Mes del reporte</label><select id="f-month" onchange="loadDraft()"></select></div>
+    <div class="field"><label>¿Qué fue lo mejor de este mes?</label><textarea id="f-best" placeholder="Logros, momentos clave, algo de lo que te sentís orgulloso/a..." oninput="autosaveDraft()"></textarea></div>
+    <div class="field"><label>¿Qué mejorarías?</label><textarea id="f-improve" placeholder="Procesos, herramientas, dinámicas del equipo..." oninput="autosaveDraft()"></textarea></div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <button class="btn-primary" onclick="submitForm()">Enviar reporte</button>
+      <span class="draft-indicator" id="draft-indicator">Borrador guardado automáticamente</span>
+    </div>
+    <div class="success-msg" id="success-msg">¡Listo! Tu reporte fue enviado.</div>
+  </div>
+
+  <!-- SETUP -->
+  <div id="tab-setup" class="section">
+    <div class="card">
+      <p style="font-weight:500;font-size:14px;margin-bottom:1rem">Miembros del equipo</p>
+      <div class="add-member-row"><input type="text" id="new-member" placeholder="Nombre del miembro"/><button class="btn-secondary" onclick="addMember()">+ Agregar</button></div>
+      <div id="members-list"></div>
+    </div>
+    <div class="card">
+      <p style="font-weight:500;font-size:14px;margin-bottom:6px">API Key de Anthropic</p>
+      <p style="font-size:13px;color:#666;line-height:1.6">Necesaria para generar el resumen con IA. Conseguila en <a href="https://console.anthropic.com" target="_blank" style="color:#111;font-weight:500">console.anthropic.com</a> → API Keys.</p>
+      <div class="key-row">
+        <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." autocomplete="off" onkeydown="if(event.key==='Enter')saveApiKey()"/>
+        <button class="btn-secondary" onclick="saveApiKey()">Guardar</button>
+        <button class="btn-secondary" onclick="clearApiKey()" id="btn-clear-key" style="display:none">Borrar</button>
+      </div>
+      <div class="key-status" id="key-status"></div>
+      <p class="persist-note">La key se guarda solo en este navegador y no sale de tu dispositivo.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIGURACIÓN ─────────────────────────────────────────────────────────
+// Reemplazá estos nombres con los de tu equipo real:
+var DEFAULT_MEMBERS = ["Persona 1","Persona 2","Persona 3","Persona 4"];
+// ─────────────────────────────────────────────────────────────────────────
+
+var STORAGE_KEY = 'team_reports_v1';
+var APIKEY_STORAGE = 'team_reports_apikey';
+var MONTH_NAMES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+function ls_get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function ls_set(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } }
+function ls_del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+
+function loadState(){
+  try{
+    var raw = ls_get(STORAGE_KEY);
+    if(raw){ var s=JSON.parse(raw); if(s&&s.members) return s; }
+  }catch(e){}
+  return {members: DEFAULT_MEMBERS.slice(), reports:{}, summaries:{}};
+}
+
+function saveState(){
+  ls_set(STORAGE_KEY, JSON.stringify({members:members, reports:allReports, summaries:aiSummaries}));
+}
+
+var state = loadState();
+var members = state.members;
+var allReports = state.reports;
+var aiSummaries = state.summaries;
+var apiKey = ls_get(APIKEY_STORAGE) || '';
+var autosaveTimer = null;
+
+var today = new Date();
+function monthKey(y,m){ return y+'-'+(m+1<10?'0':'')+(m+1); }
+function monthLabel(y,m){ return MONTH_NAMES[m]+' '+y; }
+
+function getMonthList(){
+  var l=[];
+  for(var i=5;i>=0;i--){
+    var d=new Date(today.getFullYear(),today.getMonth()-i,1);
+    l.push({y:d.getFullYear(),m:d.getMonth()});
+  }
+  return l;
+}
+var monthList = getMonthList();
+var currentIdx = monthList.length-1;
+
+function getCurrentKey(){ var o=monthList[currentIdx]; return monthKey(o.y,o.m); }
+function getInitials(n){ return n.split(' ').map(function(x){return x[0];}).join('').toUpperCase().slice(0,2); }
+
+function getMonthData(key){
+  if(!allReports[key]){
+    allReports[key]={};
+    members.forEach(function(name){ allReports[key][name]={status:"empty",best:"",improve:""}; });
+    saveState();
+  }
+  return allReports[key];
+}
+
+// ── API Key ───────────────────────────────────────────────────────────────
+function saveApiKey(){
+  var val = document.getElementById('api-key-input').value.trim();
+  var statusEl = document.getElementById('key-status');
+  if(!val){ statusEl.textContent='Ingresá una key.'; statusEl.className='key-status err'; return; }
+  if(val.indexOf('sk-ant-')<0){ statusEl.textContent='La key debe empezar con sk-ant-'; statusEl.className='key-status err'; return; }
+  var ok = ls_set(APIKEY_STORAGE, val);
+  apiKey = val;
+  document.getElementById('api-key-input').value='';
+  if(ok){
+    statusEl.textContent='✓ API key guardada correctamente en este navegador.';
+    statusEl.className='key-status ok';
+    document.getElementById('btn-clear-key').style.display='inline-block';
+  } else {
+    // Fallback: guardar en memoria de sesión aunque no persista
+    statusEl.textContent='Key guardada en sesión (tu navegador puede tener restricciones de almacenamiento).';
+    statusEl.className='key-status ok';
+    document.getElementById('btn-clear-key').style.display='inline-block';
+  }
+}
+
+function clearApiKey(){
+  ls_del(APIKEY_STORAGE);
+  apiKey='';
+  document.getElementById('key-status').textContent='Key eliminada.';
+  document.getElementById('key-status').className='key-status';
+  document.getElementById('btn-clear-key').style.display='none';
+}
+
+function updateKeyUI(){
+  var statusEl = document.getElementById('key-status');
+  if(apiKey){
+    var masked = apiKey.slice(0,14)+'•'.repeat(8);
+    statusEl.textContent='Key activa: '+masked;
+    statusEl.className='key-status ok';
+    document.getElementById('btn-clear-key').style.display='inline-block';
+  } else {
+    statusEl.textContent='';
+    document.getElementById('btn-clear-key').style.display='none';
+  }
+}
+
+// ── Month nav ─────────────────────────────────────────────────────────────
+function renderMonthNav(){
+  var o=monthList[currentIdx];
+  document.getElementById('month-label').textContent=monthLabel(o.y,o.m);
+  document.getElementById('btn-prev').disabled=currentIdx===0;
+  document.getElementById('btn-next').disabled=currentIdx===monthList.length-1;
+  var dots=document.getElementById('month-dots'); dots.innerHTML='';
+  monthList.forEach(function(item,i){
+    var key=monthKey(item.y,item.m);
+    var hasData=allReports[key]&&Object.values(allReports[key]).some(function(r){return r.status==="done";});
+    var btn=document.createElement('button');
+    btn.className='month-dot'+(i===currentIdx?' active':'')+(hasData?' has-data':'');
+    btn.title=monthLabel(item.y,item.m);
+    btn.onclick=(function(idx){return function(){currentIdx=idx;renderAll();};})(i);
+    dots.appendChild(btn);
+  });
+}
+
+// ── Admin ─────────────────────────────────────────────────────────────────
+function renderAdmin(){
+  var key=getCurrentKey(); var o=monthList[currentIdx];
+  var data=getMonthData(key);
+  var done=members.filter(function(n){return data[n]&&data[n].status==="done";}).length;
+  var draft=members.filter(function(n){return data[n]&&data[n].status==="draft";}).length;
+  var empty=members.filter(function(n){return !data[n]||data[n].status==="empty";}).length;
+  document.getElementById('m-total').textContent=members.length;
+  document.getElementById('m-done').textContent=done;
+  document.getElementById('m-draft').textContent=draft;
+  document.getElementById('m-pending').textContent=empty;
+  document.getElementById('subtitle').textContent=monthLabel(o.y,o.m)+' · '+done+' de '+members.length+' completados';
+
+  var c=document.getElementById('admin-cards'); c.innerHTML='';
+  members.forEach(function(name){
+    var r=data[name]||{status:"empty",best:"",improve:""};
+    var detailId='det-'+name.replace(/ /g,'-')+'-'+key;
+    var statusBadge=r.status==="done"
+      ?'<span class="badge badge-done">Completado</span>'
+      :r.status==="draft"
+      ?'<span class="badge badge-draft">Borrador</span>'
+      :'<span class="badge badge-pending">Sin empezar</span>';
+    var showDetail=(r.status==="done"||r.status==="draft");
+    var d=document.createElement('div'); d.className='card';
+    d.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center">'
+      +'<div style="display:flex;align-items:center;gap:10px">'
+      +'<div class="avatar">'+getInitials(name)+'</div>'
+      +'<div><div style="font-weight:500;font-size:14px">'+name+'</div><div style="font-size:12px;color:#888">'+monthLabel(o.y,o.m)+'</div></div>'
+      +'</div><div style="display:flex;align-items:center;gap:8px">'+statusBadge
+      +(showDetail?'<button class="toggle-link" onclick="toggleDetail(\''+detailId+'\')">ver</button>':'')
+      +'</div></div>'
+      +(showDetail?'<div class="report-detail" id="'+detailId+'">'
+        +'<div class="report-q">Lo mejor del mes</div><div class="report-a">'+(r.best||'—')+'</div>'
+        +'<div class="report-q">Qué mejoraría</div><div class="report-a">'+(r.improve||'—')+'</div>'
+        +'</div>':'');
+    c.appendChild(d);
+  });
+
+  var saved=aiSummaries[key];
+  if(saved){ renderSavedSummary(saved); }
+  else{
+    document.getElementById('summary-output').style.display='none';
+    document.getElementById('summary-empty').style.display='block';
+    document.getElementById('summary-empty').textContent='Hacé clic en "Generar con IA" para clasificar los reportes automáticamente.';
+    document.getElementById('btn-summarize').textContent='Generar con IA ✦';
+    document.getElementById('btn-summarize').disabled=false;
+  }
+}
+
+function toggleDetail(id){
+  var el=document.getElementById(id);
+  if(el) el.style.display=el.style.display==='block'?'none':'block';
+}
+function changeMonth(dir){ currentIdx=Math.max(0,Math.min(monthList.length-1,currentIdx+dir)); renderAll(); }
+
+// ── Editable items ────────────────────────────────────────────────────────
+function renderList(cat, items){
+  var container=document.getElementById('list-'+cat); container.innerHTML='';
+  if(!items||items.length===0){
+    var e=document.createElement('div');
+    e.style.cssText='font-size:13px;color:#bbb;font-style:italic;padding:4px 0';
+    e.textContent='Sin puntos'; container.appendChild(e); return;
+  }
+  items.forEach(function(text,idx){
+    var row=document.createElement('div'); row.className='item-row';
+    var span=document.createElement('span'); span.className='item-text';
+    span.textContent=text; span.contentEditable='false'; span.title='Clic para editar';
+    span.onclick=function(){
+      span.contentEditable='true'; span.focus();
+      var range=document.createRange(); range.selectNodeContents(span);
+      var sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    };
+    span.onblur=function(){
+      span.contentEditable='false';
+      var k=getCurrentKey();
+      if(aiSummaries[k]){ aiSummaries[k][cat][idx]=span.textContent.trim(); saveState(); }
+    };
+    span.onkeydown=function(e){ if(e.key==='Enter'){ e.preventDefault(); span.blur(); } };
+    var del=document.createElement('button'); del.className='item-del'; del.textContent='×';
+    del.onclick=function(){
+      var k=getCurrentKey();
+      if(aiSummaries[k]){ aiSummaries[k][cat].splice(idx,1); saveState(); renderSavedSummary(aiSummaries[k]); }
+    };
+    row.appendChild(span); row.appendChild(del); container.appendChild(row);
+  });
+}
+
+function renderTownHall(items){
+  var sec=document.getElementById('townhall-section');
+  if(!items||items.length===0){ sec.style.display='none'; return; }
+  sec.style.display='block';
+  var container=document.getElementById('list-townhall'); container.innerHTML='';
+  var ul=document.createElement('ul');
+  items.forEach(function(text,idx){
+    var li=document.createElement('li');
+    var span=document.createElement('span'); span.textContent=text;
+    span.style.flex='1'; span.style.cursor='text';
+    span.onclick=function(){ span.contentEditable='true'; span.focus(); };
+    span.onblur=function(){
+      span.contentEditable='false';
+      var k=getCurrentKey();
+      if(aiSummaries[k]){ aiSummaries[k].townhall[idx]=span.textContent.trim(); saveState(); }
+    };
+    span.onkeydown=function(e){ if(e.key==='Enter'){ e.preventDefault(); span.blur(); } };
+    var del=document.createElement('button'); del.className='item-del'; del.textContent='×';
+    del.onclick=function(){
+      var k=getCurrentKey();
+      if(aiSummaries[k]){ aiSummaries[k].townhall.splice(idx,1); saveState(); renderSavedSummary(aiSummaries[k]); }
+    };
+    li.appendChild(span); li.appendChild(del); ul.appendChild(li);
+  });
+  container.appendChild(ul);
+}
+
+function showAddItem(cat){
+  var row=document.getElementById('add-'+cat);
+  row.style.display=row.style.display==='flex'?'none':'flex';
+  if(row.style.display==='flex') document.getElementById('inp-'+cat).focus();
+}
+
+function commitAdd(cat){
+  var inp=document.getElementById('inp-'+cat); var val=inp.value.trim(); if(!val) return;
+  var key=getCurrentKey(); if(!aiSummaries[key]) return;
+  if(cat==='townhall'){ if(!aiSummaries[key].townhall) aiSummaries[key].townhall=[]; aiSummaries[key].townhall.push(val); }
+  else aiSummaries[key][cat].push(val);
+  inp.value=''; document.getElementById('add-'+cat).style.display='none';
+  saveState(); renderSavedSummary(aiSummaries[key]);
+}
+
+function renderSavedSummary(saved){
+  renderList('mejorar', saved.mejorar||[]);
+  renderList('pedidos', saved.pedidos||[]);
+  renderList('desvios', saved.desvios||[]);
+  renderTownHall(saved.townhall||[]);
+  document.getElementById('summary-empty').style.display='none';
+  document.getElementById('summary-loading').style.display='none';
+  document.getElementById('summary-output').style.display='block';
+  document.getElementById('btn-summarize').textContent='Regenerar ✦';
+  document.getElementById('btn-summarize').disabled=false;
+}
+
+// ── Drafts ────────────────────────────────────────────────────────────────
+function autosaveDraft(){
+  clearTimeout(autosaveTimer);
+  autosaveTimer=setTimeout(function(){
+    var name=document.getElementById('f-name').value;
+    var monthK=document.getElementById('f-month').value;
+    var best=document.getElementById('f-best').value;
+    var improve=document.getElementById('f-improve').value;
+    if(!name||!monthK) return;
+    if(!allReports[monthK]) allReports[monthK]={};
+    if(!allReports[monthK][name]||allReports[monthK][name].status!=='done'){
+      allReports[monthK][name]={status:(best||improve)?'draft':'empty',best:best,improve:improve};
+    }
+    saveState();
+    var ind=document.getElementById('draft-indicator');
+    ind.textContent='Borrador guardado ✓'; ind.classList.add('visible');
+    setTimeout(function(){ ind.textContent='Borrador guardado automáticamente'; },1500);
+  }, 800);
+}
+
+function loadDraft(){
+  var name=document.getElementById('f-name').value;
+  var monthK=document.getElementById('f-month').value;
+  var notice=document.getElementById('draft-notice');
+  var ind=document.getElementById('draft-indicator');
+  if(!name||!monthK){ notice.style.display='none'; ind.classList.remove('visible'); return; }
+  var r=allReports[monthK]&&allReports[monthK][name];
+  if(r&&(r.status==='draft'||r.status==='done')){
+    document.getElementById('f-best').value=r.best||'';
+    document.getElementById('f-improve').value=r.improve||'';
+    if(r.status==='draft'){ notice.style.display='block'; ind.classList.add('visible'); }
+    else{ notice.style.display='none'; ind.classList.remove('visible'); }
+  } else {
+    document.getElementById('f-best').value='';
+    document.getElementById('f-improve').value='';
+    notice.style.display='none'; ind.classList.remove('visible');
+  }
+}
+
+function submitForm(){
+  var name=document.getElementById('f-name').value;
+  var monthK=document.getElementById('f-month').value;
+  var best=document.getElementById('f-best').value.trim();
+  var improve=document.getElementById('f-improve').value.trim();
+  if(!name||!best||!improve){ alert('Completá todos los campos antes de enviar.'); return; }
+  if(!allReports[monthK]) allReports[monthK]={};
+  allReports[monthK][name]={status:"done",best:best,improve:improve};
+  saveState();
+  document.getElementById('success-msg').style.display='block';
+  document.getElementById('draft-notice').style.display='none';
+  document.getElementById('draft-indicator').classList.remove('visible');
+  setTimeout(function(){ document.getElementById('success-msg').style.display='none'; },3000);
+  document.getElementById('f-name').value='';
+  document.getElementById('f-best').value='';
+  document.getElementById('f-improve').value='';
+  var key=getCurrentKey(); if(key===monthK) renderAll(); else renderMonthNav();
+}
+
+// ── Selects & Members ─────────────────────────────────────────────────────
+function updateSelects(){
+  var sel=document.getElementById('f-name');
+  sel.innerHTML='<option value="">Seleccioná tu nombre</option>';
+  members.forEach(function(m){ var o=document.createElement('option'); o.textContent=m; sel.appendChild(o); });
+  var msel=document.getElementById('f-month'); msel.innerHTML='';
+  monthList.slice().reverse().forEach(function(item){
+    var o=document.createElement('option'); o.value=monthKey(item.y,item.m); o.textContent=monthLabel(item.y,item.m); msel.appendChild(o);
+  });
+}
+
+function renderMembers(){
+  var list=document.getElementById('members-list'); if(!list) return; list.innerHTML='';
+  members.forEach(function(mem,i){
+    var row=document.createElement('div'); row.className='team-list-item';
+    row.innerHTML='<div style="display:flex;align-items:center;gap:10px">'
+      +'<div class="avatar" style="width:28px;height:28px;font-size:11px">'+getInitials(mem)+'</div>'
+      +'<span style="font-size:14px">'+mem+'</span></div>'
+      +'<button class="toggle-link" onclick="removeMember('+i+')">quitar</button>';
+    list.appendChild(row);
+  });
+}
+
+function addMember(){
+  var input=document.getElementById('new-member'); var val=input.value.trim(); if(!val) return;
+  members.push(val);
+  Object.values(allReports).forEach(function(md){ if(!md[val]) md[val]={status:"empty",best:"",improve:""}; });
+  saveState(); input.value=''; renderMembers(); updateSelects(); renderAll();
+}
+
+function removeMember(i){
+  members.splice(i,1); saveState(); renderMembers(); updateSelects(); renderAll();
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────
+function switchTab(id, btn){
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
+  btn.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+  if(id==='setup'){ renderMembers(); updateKeyUI(); }
+}
+
+function renderAll(){ renderMonthNav(); renderAdmin(); }
+
+// ── IA ────────────────────────────────────────────────────────────────────
+async function generateSummary(){
+  if(!apiKey){
+    alert('Primero agregá tu API key de Anthropic en la pestaña Configuración.');
+    return;
+  }
+  var key=getCurrentKey(); var data=getMonthData(key);
+  var completed=members.filter(function(name){ return data[name]&&data[name].status==="done"; });
+  if(completed.length===0){ alert('No hay reportes completados para este mes.'); return; }
+  document.getElementById('summary-empty').style.display='none';
+  document.getElementById('summary-output').style.display='none';
+  document.getElementById('summary-loading').style.display='block';
+  document.getElementById('btn-summarize').disabled=true;
+
+  var reportText=completed.map(function(name){
+    return name+':\n- Lo mejor: '+data[name].best+'\n- Qué mejoraría: '+data[name].improve;
+  }).join('\n\n');
+
+  var prompt='Analizá los siguientes reportes mensuales de un equipo de trabajo y clasificá los puntos en cuatro categorías:\n'
+    +'1. "mejorar": procesos, habilidades o dinámicas internas que el equipo quiere mejorar\n'
+    +'2. "pedidos": solicitudes concretas de recursos, herramientas o cambios de proceso\n'
+    +'3. "desvios": situaciones inesperadas, bloqueos externos o cosas que no salieron como se esperaba\n'
+    +'4. "townhall": los temas más relevantes del mes para compartir en un Town Hall\n\n'
+    +'Respondé SOLO con JSON sin texto adicional ni backticks:\n'
+    +'{"mejorar":["punto 1","punto 2"],"pedidos":["punto 1"],"desvios":["punto 1"],"townhall":["punto 1","punto 2"]}\n\n'
+    +'Cada punto: máximo 12 palabras, tercera persona del plural. Arrays vacíos si no hay puntos.\n\n'
+    +'Reportes:\n'+reportText;
+
+  try{
+    var res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "x-api-key": apiKey,
+        "anthropic-version":"2023-06-01"
+      },
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})
+    });
+    var d=await res.json();
+    if(d.error){ throw new Error(d.error.message); }
+    var raw=d.content.map(function(i){ return i.text||''; }).join('');
+    var parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    aiSummaries[key]=parsed;
+    saveState();
+    renderSavedSummary(parsed);
+    document.getElementById('summary-loading').style.display='none';
+  } catch(e){
+    document.getElementById('summary-loading').style.display='none';
+    document.getElementById('summary-empty').style.display='block';
+    document.getElementById('summary-empty').textContent='Error: '+(e.message||'Intentá de nuevo.');
+    document.getElementById('btn-summarize').disabled=false;
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+updateSelects();
+renderAll();
+</script>
+</body>
+</html>
